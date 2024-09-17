@@ -1,0 +1,18 @@
+[target.x86_64-pc-windows-msvc]
+rustflags = ["-C", "target-feature=+crt-static"]
+
+[target.aarch64-linux-android]
+ar = "D:/Android/Android_SDK/Sdk/ndk/android-ndk-r25c/toolchains/llvm/prebuilt/windows-x86_64/bin/llvm-ar"
+linker = "D:/Android/Android_SDK/Sdk/ndk/android-ndk-r25c/toolchains/llvm/prebuilt/windows-x86_64/bin/clang"
+
+[target.armv7-linux-androideabi]
+ar = "D:/Android/Android_SDK/Sdk/ndk/android-ndk-r25c/toolchains/llvm/prebuilt/windows-x86_64/bin/llvm-ar"
+linker = "D:/Android/Android_SDK/Sdk/ndk/android-ndk-r25c/toolchains/llvm/prebuilt/windows-x86_64/bin/clang"
+
+[target.x86_64-linux-android]
+ar = "D:/Android/Android_SDK/Sdk/ndk/android-ndk-r25c/toolchains/llvm/prebuilt/windows-x86_64/bin/llvm-ar"
+linker = "D:/Android/Android_SDK/Sdk/ndk/android-ndk-r25c/toolchains/llvm/prebuilt/windows-x86_64/bin/clang"
+
+[target.i686-linux-android]
+ar = "D:/Android/Android_SDK/Sdk/ndk/android-ndk-r25c/toolchains/llvm/prebuilt/windows-x86_64/bin/llvm-ar"
+linker = "D:/Android/Android_SDK/Sdk/ndk/android-ndk-r25c/toolchains/llvm/prebuilt/windows-x86_64/bin/clang"
