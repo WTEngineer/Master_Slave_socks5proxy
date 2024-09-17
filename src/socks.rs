@@ -141,3 +141,111 @@ async fn tcp_transfer(stream : &mut TcpStream , addr : &Addr, address : &String 
 	}
 }
 
+pub async fn socksv5_handle(mut stream: TcpStream) {			//socks handle
+	loop {
+		let mut header = [0u8 ; 2];
+		if let Err(e) = stream.read_exact(&mut header).await{
+			log::error!("error : {}" , e);
+			break;
+		};
+		
+		if header[0] != 5 {
+			log::error!("not support protocol version {}" , header[0]);
+			break;
+		}
+	
+		let mut methods = vec![0u8; header[1] as usize].into_boxed_slice();
+		if let Err(e) = stream.read_exact(&mut methods).await{
+			log::error!("error : {}" , e);
+			break;
+		};
+	
+		if !methods.contains(&0u8) {
+			log::error!("just support no auth");
+			break;
+		}
+	
+		if let Err(e) = stream.write_all(&[5, 0]).await{
+			log::error!("error : {}" , e);
+			break;
+		};
+
+		let mut request =  [0u8; 4];
+		if let Err(e) = stream.read_exact(&mut request).await{
+			log::error!("error : {}" , e);
+			break;
+		};
+
+		if request[0] != 5 {
+			log::error!("say again not support version: {}" , request[0]);
+			break;
+		}
+	
+		let cmd = request[1];
+
+		if cmd != 1 {
+			log::error!("not support cmd: {}" , cmd);
+			break;
+		}
+	
+		let addr = match request[3] {
+			0x01 => {
+				let mut ipv4 =  [0u8; 4];
+				if let Err(e) = stream.read_exact(&mut ipv4).await{
+					log::error!("error : {}" , e);
+					break;
+				};
+				Addr::V4(ipv4)
+			},
+			0x04 => {
+				let mut ipv6 =  [0u8; 16];
+				if let Err(e) = stream.read_exact(&mut ipv6).await{
+					log::error!("error : {}" , e);
+					break;
+				};
+				Addr::V6(ipv6)
+			},
+			0x03 => {
+				let mut domain_size =  [0u8; 1];
+				if let Err(e) = stream.read_exact(&mut domain_size).await{
+					log::error!("error : {}" , e);
+					break;
+				};
+				let mut domain =  vec![0u8; domain_size[0] as usize].into_boxed_slice();
+				if let Err(e) = stream.read_exact(&mut domain).await{
+					log::error!("error : {}" , e);
+					break;
+				};
+
+				Addr::Domain(domain)
+			},
+			_ => {
+				log::error!("unknow atyp {}" , request[3]);
+				break;
+			}
+		};
+	
+		let mut port = [0u8 ; 2];
+		if let Err(e) = stream.read_exact(&mut port).await{
+			log::error!("error : {}" , e);
+			break;
+		};
+
+		let port = (port[0] as u16) << 8 | port[1] as u16;
+		let address_prefix = match format_ip_addr(&addr){
+			Err(_) => {
+				break;
+			}
+			Ok(p) => p
+		};
+		let address = format!("{}:{}" , address_prefix , port);
+
+		if cmd == 1 {
+			tcp_transfer(&mut stream , &addr).await;
+		}
+		
+
+		log::info!("connection [{}] finished" , address);
+		break;
+	}
+}
